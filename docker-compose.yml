@@ -1,0 +1,15 @@
+services:
+  trader_db:
+    image: "postgres:latest"
+    environment:
+      POSTGRES_USER: ${DB_USER:-trader}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: ${DB_NAME:-trader}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - trader_db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  trader_db_data:

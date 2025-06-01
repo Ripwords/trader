@@ -1,0 +1,20 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Use Drizzle ORM for all database interactions. All database code must exist only in server-side files (e.g., `server/api/` or `server/lib/`).
+
+- The database schema is defined in `@server/db/schema.ts`.
+- Import the `db` client instance from `~/server/db` to execute queries.
+
+**Example Usage in a Server Route:**
+```typescript
+import { db } from '~/server/db';
+import { users } from '~/server/db/schema';
+
+export default defineEventHandler(async (event) => {
+  const allUsers = await db.select().from(users);
+  return allUsers;
+});
+```

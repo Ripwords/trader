@@ -1,0 +1,45 @@
+{
+  "name": "trader",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "db:push": "drizzle-kit push",
+    "auth:gen": "bunx @better-auth/cli generate --config ./server/auth/index.ts --output ./server/auth/schema.ts -y",
+    "comp": "bunx --bun shadcn-vue@latest add"
+  },
+  "dependencies": {
+    "@nuxt/eslint": "1.4.1",
+    "@nuxt/fonts": "0.11.4",
+    "@nuxt/icon": "1.13.0",
+    "@nuxt/image": "1.10.0",
+    "@tailwindcss/vite": "^4.1.8",
+    "@vee-validate/zod": "^4.15.0",
+    "@vueuse/core": "^13.3.0",
+    "better-auth": "^1.2.8",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "drizzle-kit": "^0.31.1",
+    "drizzle-orm": "^0.44.1",
+    "eslint": "^9.0.0",
+    "lucide-vue-next": "^0.511.0",
+    "nuxt": "^3.17.4",
+    "pg": "^8.16.0",
+    "reka-ui": "^2.3.0",
+    "shadcn-nuxt": "2.2.0",
+    "tailwind-merge": "^3.3.0",
+    "tailwindcss": "^4.1.8",
+    "tw-animate-css": "^1.3.2",
+    "vee-validate": "^4.15.0",
+    "vue": "^3.5.15",
+    "vue-router": "^4.5.1",
+    "zod": "^3.25.45"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.15.2"
+  }
+}

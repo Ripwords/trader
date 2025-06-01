@@ -1,0 +1,21 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+The primary goal of this project is to build a web application that advises a user whether to buy, sell, or hold a specific stock, based on the user's risk appetite.
+
+**Key Architecture and Workflow:**
+1.  **Automated Data Fetching (Server-Side, Nitro Cron Tasks):**
+    * The backend uses scheduled Nitro tasks (cron) to automatically fetch and cache:
+        - Recent financial news (from the `NEWS_SENTIMENT` endpoint of Alpha Vantage).
+        - The past 7-10 days of stock data (OHLCV from the `TIME_SERIES_DAILY_ADJUSTED` endpoint).
+2.  **Frontend (Nuxt/Vue):**
+    * The user enters a stock ticker symbol (e.g., "AAPL") and specifies their risk appetite in the UI.
+3.  **Backend (Nitro):**
+    * The frontend calls a server API endpoint, which retrieves the latest cached data for the requested ticker.
+4.  **AI Analysis (Server-Side):**
+    * The server structures the cached news and stock data, along with the user's risk appetite, into a clear, detailed prompt.
+    * This prompt is sent to a Large Language Model (**Google's Gemini API**) for analysis.
+5.  **Response:**
+    * The LLM returns a "BUY", "SELL", or "HOLD" recommendation with a brief justification, tailored to the user's risk appetite. The backend forwards this response to the frontend to be displayed to the user.
