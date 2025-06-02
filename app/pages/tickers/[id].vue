@@ -10,15 +10,22 @@ import {
 } from "~/components/ui/card"
 import { Button } from "~/components/ui/button"
 
+useSeoMeta({
+  title: "Ticker",
+  description: "Track your favorite ticker",
+})
+
 const route = useRoute("tickers-id")
 const currentTickerId = String(route.params.id || "")
 
-const { data: tickerData, pending } = useLazyFetch(
+const { data: tickerData, pending } = useFetch(
   `/api/finance/${currentTickerId}`,
   {
     query: {
       riskAppetite: "medium",
     },
+    retryDelay: 3500,
+    retry: 5,
   }
 )
 
@@ -45,30 +52,30 @@ const getRecommendationClass = (action?: string): string => {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <h2 class="text-xl font-semibold mb-2">TradingView Chart</h2>
-          <ClientOnly>
-            <MiniChart
-              :options="{
-                symbol: currentTickerId,
-                width: '100%',
-                isTransparent: false,
-                colorTheme: 'dark',
-                locale: 'en',
-              }"
-            />
-            <TechnicalAnalysis
-              :options="{
-                width: '100%',
-                height: 450,
-                colorTheme: 'dark',
-                interval: '1m',
-                isTransparent: false,
-                symbol: currentTickerId,
-                showIntervalTabs: true,
-                displayMode: 'single',
-                locale: 'en',
-              }"
-            />
-          </ClientOnly>
+          <MiniChart
+            :key="currentTickerId + $colorMode.value"
+            :options="{
+              symbol: currentTickerId,
+              width: '100%',
+              isTransparent: false,
+              colorTheme: $colorMode.value,
+              locale: 'en',
+            }"
+          />
+          <TechnicalAnalysis
+            :key="currentTickerId + $colorMode.value"
+            :options="{
+              width: '100%',
+              height: 450,
+              colorTheme: $colorMode.value,
+              interval: '1m',
+              isTransparent: false,
+              symbol: currentTickerId,
+              showIntervalTabs: true,
+              displayMode: 'single',
+              locale: 'en',
+            }"
+          />
         </div>
         <div>
           <h2 class="text-xl font-semibold mb-2">Latest Recommendation</h2>

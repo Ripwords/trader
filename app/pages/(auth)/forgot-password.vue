@@ -2,6 +2,10 @@
 import { z } from "zod"
 import { AutoForm } from "@/components/ui/auto-form"
 
+definePageMeta({
+  layout: "auth",
+})
+
 const forgotPasswordSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
 })

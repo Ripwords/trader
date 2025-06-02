@@ -20,29 +20,21 @@ import {
 import { Input } from "@/components/ui/input"
 import { ref } from "vue"
 import { toast } from "vue-sonner"
+import type { InternalApi } from "nitropack"
 
-// Interface for an individual ticker item from search
-interface TickerItem {
-  symbol: string
-  name: string
-}
-
-// Interface for the items in the user's tracked tickers list
-interface UserTickerInfo {
-  id: number // Assuming id from the database is a number
-  symbol: string
-  userId: string
-  createdAt: string // Or Date, depending on what the API returns
-  updatedAt: string // Or Date
-  // Add other properties if needed, e.g., recommendation type
-}
+useSeoMeta({
+  title: "Tickers",
+  description: "Track your favorite tickers", 
+})
 
 const {
   data: tickers,
   pending,
   error,
   refresh: refreshTickers,
-} = await useLazyFetch<UserTickerInfo[]>("/api/user/list")
+} = await useLazyFetch("/api/user/list")
+
+type TickerItem = InternalApi["/api/user/list"]["get"][number]
 
 const searchTerm = useState("searchTerm", () => "")
 const searchResults = useState<TickerItem[] | null>("searchResults", () => null) // Holds the entire API response
@@ -143,7 +135,7 @@ async function handleDeleteTicker() {
   <div class="container mx-auto p-4">
     <div class="flex justify-between items-center mb-4">
       <h1 class="text-2xl font-bold">My Tracked Tickers</h1>
-      <Dialog>
+      <Dialog v-model:open="isAddingTicker">
         <DialogTrigger as-child>
           <Button>Add Ticker</Button>
         </DialogTrigger>
@@ -238,56 +230,69 @@ async function handleDeleteTicker() {
         :key="ticker.id"
       >
         <CardHeader>
-          <CardTitle>{{ ticker.symbol }}</CardTitle>
+          <CardTitle>
+            <div class="flex justify-between items-center">
+              <NuxtLink :to="`/tickers/${ticker.symbol}`">
+                <p>{{ ticker.symbol }}</p>
+              </NuxtLink>
+              <Dialog>
+                <DialogTrigger as-child>
+                  <Button
+                    variant="ghost"
+                    @click="tickerToDeleteId = Number(ticker.id)"
+                  >
+                    <Icon name="line-md:remove" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent class="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Confirm Deletion</DialogTitle>
+                    <DialogDescription>
+                      Are you sure you want to delete this ticker ({{
+                        ticker.symbol
+                      }})? This action cannot be undone.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter class="sm:justify-start">
+                    <DialogClose as-child>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                      >
+                        Cancel
+                      </Button>
+                    </DialogClose>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      :disabled="isDeletingTicker"
+                      @click="handleDeleteTicker"
+                    >
+                      {{ isDeletingTicker ? "Deleting..." : "Delete" }}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <p class="text-sm text-muted-foreground">
-            Tracked since: {{ $dayjs(ticker.createdAt).format("MM/DD/YYYY") }}
-          </p>
+          <MiniChart
+            :key="ticker.symbol + $colorMode.value"
+            :class="ticker.symbol"
+            :options="{
+              symbol: ticker.symbol,
+              width: '100%',
+              isTransparent: false,
+              colorTheme: $colorMode.value,
+              locale: 'en',
+            }"
+          />
         </CardContent>
         <CardFooter class="flex justify-between items-center">
           <NuxtLink :to="`/tickers/${ticker.symbol}`">
             <Button variant="outline">View Details</Button>
           </NuxtLink>
-
-          <Dialog>
-            <DialogTrigger as-child>
-              <Button
-                variant="ghost"
-                @click="tickerToDeleteId = Number(ticker.id)"
-              >
-                <Icon name="line-md:remove" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent class="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Confirm Deletion</DialogTitle>
-                <DialogDescription>
-                  Are you sure you want to delete this ticker ({{
-                    ticker.symbol
-                  }})? This action cannot be undone.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter class="sm:justify-start">
-                <DialogClose as-child>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                  >
-                    Cancel
-                  </Button>
-                </DialogClose>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  :disabled="isDeletingTicker"
-                  @click="handleDeleteTicker"
-                >
-                  {{ isDeletingTicker ? "Deleting..." : "Delete" }}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
         </CardFooter>
       </Card>
     </div>

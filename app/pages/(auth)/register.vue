@@ -2,6 +2,10 @@
 import { z } from "zod"
 import { AutoForm } from "@/components/ui/auto-form"
 
+definePageMeta({
+  layout: "auth",
+})
+
 const registerSchema = z
   .object({
     name: z.string().min(2, { message: "Name is required" }),
