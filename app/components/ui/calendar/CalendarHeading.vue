@@ -6,7 +6,7 @@ import {
   type CalendarHeadingProps,
   useForwardProps,
 } from "reka-ui"
-import { cn } from "~/utils/utils"
+import { cn } from "~/lib/utils"
 
 const props = defineProps<
   CalendarHeadingProps & { class?: HTMLAttributes["class"] }

@@ -7,7 +7,7 @@ import {
   type CalendarRootProps,
   useForwardPropsEmits,
 } from "reka-ui"
-import { cn } from "~/utils/utils"
+import { cn } from "~/lib/utils"
 import {
   CalendarCell,
   CalendarCellTrigger,

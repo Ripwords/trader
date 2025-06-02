@@ -6,7 +6,7 @@ import {
   type AccordionItemProps,
   useForwardProps,
 } from "reka-ui"
-import { cn } from "~/utils/utils"
+import { cn } from "~/lib/utils"
 
 const props = defineProps<
   AccordionItemProps & { class?: HTMLAttributes["class"] }

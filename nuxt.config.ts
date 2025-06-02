@@ -15,9 +15,19 @@ export default defineNuxtConfig({
       openAPI: true,
       tasks: true,
     },
-    scheduledTasks: {
-      "*/1 * * * * *": ["log"],
+    scheduledTasks: {},
+  },
+  routeRules: {
+    "/api/finance/**": {
+      security: {
+        rateLimiter: {
+          interval: 60,
+        },
+      },
     },
+  },
+  colorMode: {
+    classSuffix: "",
   },
   css: ["~/assets/css/main.css"],
   vite: {
@@ -29,7 +39,8 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     databaseUrl: "",
-    alphaVantageApiKey: "",
+    geminiApiKey: "",
+    polygonApiKey: "",
   },
   modules: [
     "@nuxt/eslint",
@@ -37,5 +48,11 @@ export default defineNuxtConfig({
     "@nuxt/icon",
     "@nuxt/image",
     "shadcn-nuxt",
+    "nuxt-security",
+    "@nuxt/scripts",
+    "nuxt-tradingview",
+    "@nuxtjs/color-mode",
+    "@vueuse/nuxt",
+    "dayjs-nuxt",
   ],
 })

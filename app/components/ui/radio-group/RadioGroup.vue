@@ -7,7 +7,7 @@ import {
   type RadioGroupRootProps,
   useForwardPropsEmits,
 } from "reka-ui"
-import { cn } from "~/utils/utils"
+import { cn } from "~/lib/utils"
 
 const props = defineProps<
   RadioGroupRootProps & { class?: HTMLAttributes["class"] }

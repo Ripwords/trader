@@ -42,7 +42,11 @@ async function onSubmit(values: {
         class="space-y-4"
         :schema="registerSchema"
         @submit="onSubmit"
-      />
+      >
+        <div class="flex justify-center items-center">
+          <UiButton type="submit">Create account</UiButton>
+        </div>
+      </AutoForm>
       <div class="flex justify-center mt-4 text-sm">
         <NuxtLink
           to="/login"

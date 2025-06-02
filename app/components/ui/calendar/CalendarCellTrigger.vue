@@ -6,7 +6,7 @@ import {
   type CalendarCellTriggerProps,
   useForwardProps,
 } from "reka-ui"
-import { cn } from "~/utils/utils"
+import { cn } from "~/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 
 const props = withDefaults(

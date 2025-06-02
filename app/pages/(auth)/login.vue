@@ -10,10 +10,14 @@ const loginSchema = z.object({
 })
 
 async function onSubmit(values: { email: string; password: string }) {
-  await authClient.signIn.email({
+  const { error } = await authClient.signIn.email({
     email: values.email,
     password: values.password,
   })
+  if (error) {
+    console.error(error)
+  }
+  navigateTo("/tickers")
 }
 </script>
 
@@ -29,7 +33,11 @@ async function onSubmit(values: { email: string; password: string }) {
         class="space-y-4"
         :schema="loginSchema"
         @submit="onSubmit"
-      />
+      >
+        <div class="flex justify-center items-center">
+          <UiButton type="submit">Sign in</UiButton>
+        </div>
+      </AutoForm>
       <div class="flex justify-between mt-4 text-sm">
         <NuxtLink
           to="/register"
