@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { z } from "zod"
 import { AutoForm } from "@/components/ui/auto-form"
+import { toast } from "vue-sonner"
 
 definePageMeta({
   layout: "auth",
@@ -10,10 +11,28 @@ const forgotPasswordSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
 })
 
+const isLoading = ref(false)
+
 async function onSubmit(values: { email: string }) {
-  await authClient.forgetPassword({
-    email: values.email,
-  })
+  isLoading.value = true
+  try {
+    const { error } = await authClient.forgetPassword({
+      email: values.email,
+      redirectTo: "/reset-password",
+    })
+    if (error) {
+      throw error
+    }
+    toast.success("Password reset email sent")
+  } catch (error) {
+    if (error instanceof Error) {
+      toast.error(error.message)
+    } else {
+      toast.error("Failed to send password reset email")
+    }
+  } finally {
+    isLoading.value = false
+  }
 }
 </script>
 
@@ -27,10 +46,19 @@ async function onSubmit(values: { email: string }) {
         Enter your email and we'll send you a password reset link.
       </p>
       <AutoForm
-        class="mt-4"
+        class="space-y-4"
         :schema="forgotPasswordSchema"
         @submit="onSubmit"
-      />
+      >
+        <div class="flex justify-center items-center">
+          <UiButton
+            :disabled="isLoading"
+            type="submit"
+          >
+            Reset password
+          </UiButton>
+        </div>
+      </AutoForm>
       <div class="flex justify-center mt-4 text-sm">
         <NuxtLink
           to="/login"

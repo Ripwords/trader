@@ -24,7 +24,7 @@ import type { InternalApi } from "nitropack"
 
 useSeoMeta({
   title: "Tickers",
-  description: "Track your favorite tickers", 
+  description: "Track your favorite tickers",
 })
 
 const {
@@ -56,8 +56,11 @@ const searchTickers = useDebounceFn(async () => {
     )
     searchResults.value = data
   } catch (err) {
-    console.error("Error searching tickers:", err)
-    toast.error("Failed to search tickers.")
+    if (err instanceof Error) {
+      toast.error(err.message)
+    } else {
+      toast.error("Failed to search tickers.")
+    }
     searchResults.value = null
   } finally {
     isLoadingSearch.value = false
@@ -84,17 +87,11 @@ async function addTicker(ticker: TickerItem) {
     searchTerm.value = ""
     searchResults.value = null
   } catch (error: unknown) {
-    console.error("Error adding ticker:", error)
-    let errorMessage = "Failed to add ticker."
-    if (typeof error === "object" && error !== null && "data" in error) {
-      const errorData = (error as { data: { message?: string } }).data
-      if (errorData && typeof errorData.message === "string") {
-        errorMessage = errorData.message
-      }
-    } else if (error instanceof Error) {
-      errorMessage = error.message
+    if (error instanceof Error) {
+      toast.error(error.message)
+    } else {
+      toast.error("Failed to add ticker.")
     }
-    toast.error(errorMessage)
   } finally {
     isAddingTicker.value = false
   }
@@ -114,17 +111,11 @@ async function handleDeleteTicker() {
     toast.success(`Ticker ${tickerSymbolToDelete || ""} deleted successfully!`)
     tickerToDeleteId.value = null
   } catch (error: unknown) {
-    console.error("Error deleting ticker:", error)
-    let errorMessage = "Failed to delete ticker."
-    if (typeof error === "object" && error !== null && "data" in error) {
-      const errorData = (error as { data: { message?: string } }).data
-      if (errorData && typeof errorData.message === "string") {
-        errorMessage = errorData.message
-      }
-    } else if (error instanceof Error) {
-      errorMessage = error.message
+    if (error instanceof Error) {
+      toast.error(error.message)
+    } else {
+      toast.error("Failed to delete ticker.")
     }
-    toast.error(errorMessage)
   } finally {
     isDeletingTicker.value = false
   }

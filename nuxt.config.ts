@@ -41,6 +41,10 @@ export default defineNuxtConfig({
     databaseUrl: "",
     geminiApiKey: "",
     polygonApiKey: "",
+    brevoKey: "",
+    brevoEmail: "",
+    brevoName: "",
+    companyName: "",
   },
   modules: [
     "@nuxt/eslint",
