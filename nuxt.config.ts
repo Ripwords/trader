@@ -46,6 +46,7 @@ export default defineNuxtConfig({
           "https://www.tradingview-widget.com",
           "wss://*.tradingview.com",
           "wss://www.tradingview-widget.com",
+          "https://ticker-2e1ica8b9.now.sh",
         ],
         "style-src": [
           "'self'",
