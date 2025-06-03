@@ -376,18 +376,15 @@ function formatDate(dateString: string | Date): string {
         </div>
 
         <!-- Registered Passkeys -->
-        <div
-          v-if="passkeys?.length"
-          class="border-t border-gray-200 dark:border-gray-700 pt-6"
-        >
-          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-            Registered Passkeys
-          </h3>
-          <div class="space-y-3">
+        <UiCard v-if="passkeys?.length">
+          <UiCardHeader>
+            <UiCardTitle> Registered Passkeys </UiCardTitle>
+          </UiCardHeader>
+          <UiCardContent class="space-y-3">
             <div
               v-for="key in passkeys"
               :key="key.id"
-              class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded-lg p-3"
+              class="flex items-center justify-between rounded-lg p-3"
             >
               <div class="flex items-center space-x-3">
                 <svg
@@ -406,12 +403,13 @@ function formatDate(dateString: string | Date): string {
                     {{ key.name || `Passkey ${key.id.substring(0, 6)}` }}
                   </p>
                   <p class="text-xs text-gray-500 dark:text-gray-400">
-                    Added {{ formatDate(key.createdAt) }} • {{ key.deviceType }}
+                    Added {{ formatDate(key.createdAt) }} •
+                    {{ key.deviceType }}
                   </p>
                 </div>
               </div>
-              <button
-                class="text-red-600 hover:text-red-800 p-1"
+              <UiButton
+                variant="destructive"
                 aria-label="Delete passkey"
                 @click="deletePasskey(key.id, key.name)"
               >
@@ -431,10 +429,10 @@ function formatDate(dateString: string | Date): string {
                     clip-rule="evenodd"
                   />
                 </svg>
-              </button>
+              </UiButton>
             </div>
-          </div>
-        </div>
+          </UiCardContent>
+        </UiCard>
 
         <!-- Browser Support Check -->
         <div class="mt-6 p-4 rounded-lg">
