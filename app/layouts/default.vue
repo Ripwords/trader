@@ -27,7 +27,9 @@ const sidebarOpen = ref(true)
         class="fixed top-4 right-4 z-50"
         aria-label="Toggle sidebar"
       />
-      <slot />
+      <div class="w-full mt-16">
+        <slot />
+      </div>
     </main>
   </SidebarProvider>
 </template>

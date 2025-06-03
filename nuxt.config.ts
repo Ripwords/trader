@@ -78,6 +78,55 @@ export default defineNuxtConfig({
     prefix: "Ui",
     componentDir: "~/components/ui",
   },
+  pwa: {
+    base: "/",
+    strategies: "generateSW",
+    workbox: {
+      // Only precache these files - html should be excluded
+      globPatterns: ["**/*.{js,css}"],
+      // Don't fallback on document based (e.g. `/some-page`) requests
+      // Even though this says `null` by default, I had to set this specifically to `null` to make it work
+      navigateFallback: null,
+    },
+    injectManifest: {
+      globPatterns: ["**/*.{js,css,html,png,svg,ico}"],
+    },
+    manifest: {
+      name: "Trader",
+      short_name: "Trader",
+      description: "Trader",
+      lang: "en",
+      theme_color: "#000000",
+      background_color: "#000000",
+      display: "standalone",
+      icons: [
+        {
+          src: "img/icons/manifest-icon-192.maskable.png",
+          sizes: "192x192",
+          type: "image/png",
+          purpose: "any",
+        },
+        {
+          src: "img/icons/manifest-icon-192.maskable.png",
+          sizes: "192x192",
+          type: "image/png",
+          purpose: "maskable",
+        },
+        {
+          src: "img/icons/manifest-icon-512.maskable.png",
+          sizes: "512x512",
+          type: "image/png",
+          purpose: "any",
+        },
+        {
+          src: "img/icons/manifest-icon-512.maskable.png",
+          sizes: "512x512",
+          type: "image/png",
+          purpose: "maskable",
+        },
+      ],
+    },
+  },
   runtimeConfig: {
     databaseUrl: "",
     geminiApiKey: "",
@@ -99,5 +148,6 @@ export default defineNuxtConfig({
     "@nuxtjs/color-mode",
     "@vueuse/nuxt",
     "dayjs-nuxt",
+    "@vite-pwa/nuxt",
   ],
 })
