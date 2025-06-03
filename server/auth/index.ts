@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth"
 import { openAPI } from "better-auth/plugins"
+import { passkey } from "better-auth/plugins/passkey"
 
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { db } from "../database"
@@ -10,11 +11,10 @@ export const auth = betterAuth({
     provider: "pg",
     schema,
   }),
-  plugins: [openAPI()],
+  plugins: [openAPI(), passkey()],
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({ url, user }) => {
-      console.log(url)
       await sendEmail({
         to: user.email,
         name: user.name || "",

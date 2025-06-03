@@ -41,6 +41,15 @@ async function onSubmit(values: {
       throw error
     }
 
+    const { error: verificationError } = await authClient.sendVerificationEmail(
+      {
+        email: values.email,
+      }
+    )
+    if (verificationError) {
+      throw verificationError
+    }
+
     toast.success("Account created successfully")
     toast.success("Please check your email for verification")
     navigateTo("/login")

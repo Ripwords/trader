@@ -21,6 +21,7 @@ type MenuItem = {
 const menuItems = computed<MenuItem[]>(() => {
   const items: MenuItem[] = [
     { title: "Home", url: "/", icon: "i-heroicons-chart-bar" },
+    { title: "Settings", url: "/settings", icon: "i-heroicons-cog-6-tooth" },
     {
       title: "Logout",
       onClick: async () => {
