@@ -22,5 +22,5 @@ export default defineConfig({
       }${size.width}x${size.height}.png`
     },
   }),
-  images: ["public/logo.svg"],
+  images: ["public/logo.png"],
 })
