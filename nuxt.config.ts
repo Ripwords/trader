@@ -73,6 +73,9 @@ export default defineNuxtConfig({
   css: ["~/assets/css/main.css"],
   vite: {
     plugins: [tailwindcss()],
+    experimental: {
+      enableNativePlugin: true,
+    },
   },
   shadcn: {
     prefix: "Ui",

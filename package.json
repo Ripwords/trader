@@ -52,5 +52,8 @@
   "devDependencies": {
     "@iconify-json/line-md": "^1.2.8",
     "@types/pg": "^8.15.2"
+  },
+  "overrides": {
+    "vite": "npm:rolldown-vite@latest"
   }
 }
