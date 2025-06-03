@@ -22,17 +22,21 @@ const registerSchema = z
     path: ["confirmPassword"],
   })
 
+const isLoading = ref(false)
+
 async function onSubmit(values: {
   name: string
   email: string
   password: string
   confirmPassword: string
 }) {
+  isLoading.value = true
   await authClient.signUp.email({
     email: values.email,
     password: values.password,
     name: values.name,
   })
+  isLoading.value = false
 }
 </script>
 
@@ -48,7 +52,12 @@ async function onSubmit(values: {
         @submit="onSubmit"
       >
         <div class="flex justify-center items-center">
-          <UiButton type="submit">Create account</UiButton>
+          <UiButton
+            :disabled="isLoading"
+            type="submit"
+          >
+            {{ isLoading ? "Creating account..." : "Create account" }}
+          </UiButton>
         </div>
       </AutoForm>
       <div class="flex justify-center mt-4 text-sm">
