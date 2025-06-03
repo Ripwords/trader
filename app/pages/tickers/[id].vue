@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card"
-import { Button } from "~/components/ui/button"
 
 useSeoMeta({
   title: "Ticker",
@@ -44,9 +43,6 @@ const getRecommendationClass = (action?: string): string => {
     <div>
       <div class="flex justify-between items-center mb-4">
         <h1 class="text-3xl font-bold">{{ currentTickerId }}</h1>
-        <NuxtLink to="/tickers">
-          <Button variant="outline">Back to Tickers</Button>
-        </NuxtLink>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -93,9 +89,6 @@ const getRecommendationClass = (action?: string): string => {
               Error loading ticker details:
               {{ tickerData?.errors || "Failed to load data" }}
             </p>
-            <NuxtLink to="/tickers">
-              <Button variant="link">Back to Tickers</Button>
-            </NuxtLink>
           </div>
           <Card
             v-else-if="!tickerData?.errors && tickerData?.data"

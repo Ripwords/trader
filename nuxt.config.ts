@@ -17,6 +17,39 @@ export default defineNuxtConfig({
     },
     scheduledTasks: {},
   },
+  security: {
+    headers: {
+      contentSecurityPolicy: {
+        "frame-src": [
+          "'self'",
+          "https://*.tradingview.com",
+          "https://s.tradingview.com",
+          "https://charting-library.tradingview.com",
+        ],
+        "script-src": [
+          "'self'",
+          "https:",
+          "'unsafe-inline'",
+          "'strict-dynamic'",
+          "'nonce-{{nonce}}'",
+          "https://*.tradingview.com",
+          "https://s.tradingview.com",
+        ],
+        "connect-src": [
+          "'self'",
+          "https://*.tradingview.com",
+          "https://s.tradingview.com",
+          "wss://*.tradingview.com",
+        ],
+        "style-src": [
+          "'self'",
+          "https:",
+          "'unsafe-inline'",
+          "https://*.tradingview.com",
+        ],
+      },
+    },
+  },
   routeRules: {
     "/api/finance/**": {
       security: {
