@@ -4,12 +4,18 @@ import type {
   TransformedPolygonNewsArticle,
   TransformedPolygonShortInterest,
   TransformedPolygonMACD,
+  TransformedPolygonRSI,
+  TransformedPolygonEMA,
+  TransformedPolygonSMA,
 } from "../../utils/polygon"
 import {
   fetchDailyStockData,
   fetchPolygonNews,
   fetchShortInterest,
   fetchMACD,
+  fetchRSI,
+  fetchEMA,
+  fetchSMA,
   fetchWeeklyStockData,
 } from "../../utils/polygon"
 import { getInvestmentRecommendation } from "../../utils/googleGemini"
@@ -31,12 +37,18 @@ interface FinanceResponse {
   polygonNews?: TransformedPolygonNewsArticle[] | null
   shortInterest?: TransformedPolygonShortInterest[] | null
   macd?: TransformedPolygonMACD | null
+  rsi?: TransformedPolygonRSI | null
+  ema?: TransformedPolygonEMA | null
+  sma?: TransformedPolygonSMA | null
   errors?: {
     stock?: string
     weeklyStock?: string
     polygonNews?: string
     shortInterest?: string
     macd?: string
+    rsi?: string
+    ema?: string
+    sma?: string
     other?: string | string[]
   }
   data?: typeof recommendations.$inferSelect
@@ -46,7 +58,7 @@ defineRouteMeta({
   openAPI: {
     summary: "Polygon.io data fetching and Gemini recommendation",
     description:
-      "Fetches daily/weekly stock data, news, short interest, and MACD from Polygon.io for a given stock symbol, and gets an investment recommendation from Gemini.",
+      "Fetches daily/weekly stock data, news, short interest, MACD, RSI, EMA, and SMA from Polygon.io for a given stock symbol, and gets an investment recommendation from Gemini.",
     tags: ["Finance"],
     parameters: [
       {
@@ -106,6 +118,9 @@ defineRouteMeta({
                     polygonNews: { type: "string" },
                     shortInterest: { type: "string" },
                     macd: { type: "string" },
+                    rsi: { type: "string" },
+                    ema: { type: "string" },
+                    sma: { type: "string" },
                     other: { type: "string" },
                   },
                 },
@@ -186,6 +201,9 @@ export default defineCachedEventHandler(
     let polygonNewsData: TransformedPolygonNewsArticle[] | null = null
     let shortInterestData: TransformedPolygonShortInterest[] | null = null
     let macdData: TransformedPolygonMACD | null = null
+    let rsiData: TransformedPolygonRSI | null = null
+    let emaData: TransformedPolygonEMA | null = null
+    let smaData: TransformedPolygonSMA | null = null
 
     const [
       dailyRawData,
@@ -193,6 +211,9 @@ export default defineCachedEventHandler(
       polygonNewsRawData,
       shortInterestRawData,
       macdRawData,
+      rsiRawData,
+      emaRawData,
+      smaRawData,
     ] = await Promise.allSettled([
       fetchDailyStockData(polygonApiKey, symbol, 60),
       fetchWeeklyStockData(polygonApiKey, symbol, 52),
@@ -200,6 +221,23 @@ export default defineCachedEventHandler(
       fetchShortInterest(polygonApiKey, symbol, 12),
       fetchMACD(polygonApiKey, symbol, {
         timespan: "day",
+        limit: 60,
+        order: "desc",
+      }),
+      fetchRSI(polygonApiKey, symbol, {
+        timespan: "day",
+        limit: 60,
+        order: "desc",
+      }),
+      fetchEMA(polygonApiKey, symbol, {
+        timespan: "day",
+        window: 12,
+        limit: 60,
+        order: "desc",
+      }),
+      fetchSMA(polygonApiKey, symbol, {
+        timespan: "day",
+        window: 20,
         limit: 60,
         order: "desc",
       }),
@@ -240,6 +278,21 @@ export default defineCachedEventHandler(
     if (!macdData || !macdData.values || macdData.values.length === 0)
       errors.macd = errors.macd || `No MACD data for ${symbol}.`
 
+    if (rsiRawData.status === "fulfilled") rsiData = rsiRawData.value
+    else errors.rsi = `Error fetching RSI: ${rsiRawData.reason}`
+    if (!rsiData || !rsiData.values || rsiData.values.length === 0)
+      errors.rsi = errors.rsi || `No RSI data for ${symbol}.`
+
+    if (emaRawData.status === "fulfilled") emaData = emaRawData.value
+    else errors.ema = `Error fetching EMA: ${emaRawData.reason}`
+    if (!emaData || !emaData.values || emaData.values.length === 0)
+      errors.ema = errors.ema || `No EMA data for ${symbol}.`
+
+    if (smaRawData.status === "fulfilled") smaData = smaRawData.value
+    else errors.sma = `Error fetching SMA: ${smaRawData.reason}`
+    if (!smaData || !smaData.values || smaData.values.length === 0)
+      errors.sma = errors.sma || `No SMA data for ${symbol}.`
+
     const response: FinanceResponse = {}
     if (Object.keys(errors).length > 0) {
       response.errors = errors
@@ -256,6 +309,9 @@ export default defineCachedEventHandler(
         weekly: weeklyStockData,
         macd: macdData,
         shortInterest: shortInterestData,
+        rsi: rsiData,
+        ema: emaData,
+        sma: smaData,
       }
 
       try {

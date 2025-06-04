@@ -41,3 +41,14 @@ export const userTickers = pgTable("user_tickers", {
     .defaultNow()
     .$onUpdate(() => new Date()),
 })
+
+export const userApiKeys = pgTable("user_api_keys", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  geminiApiKey: text("gemini_api_key"),
+  polygonApiKey: text("polygon_api_key"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+})

@@ -644,3 +644,435 @@ export async function fetchWeeklyStockData(
     return null
   }
 }
+
+// --- Polygon.io RSI API ---
+
+const PolygonRSIValueSchema = z.object({
+  timestamp: z.number(), // The timestamp for the RSI data point
+  value: z.number(), // The RSI value (0-100)
+})
+
+// Optional: Schema for underlying aggregate data if expand_underlying=true
+const PolygonRSIUnderlyingResultSchema = z.object({
+  o: z.number(),
+  h: z.number(),
+  l: z.number(),
+  c: z.number(),
+  v: z.number(),
+  t: z.number(), // Timestamp
+  n: z.number().optional(),
+})
+
+const PolygonRSIUnderlyingSchema = z.object({
+  url: z.string().url(),
+  results: z.array(PolygonRSIUnderlyingResultSchema).optional(),
+})
+
+const PolygonRSIResultsSchema = z.object({
+  values: z.array(PolygonRSIValueSchema),
+  underlying: PolygonRSIUnderlyingSchema.optional(), // Only if expand_underlying=true
+})
+
+const PolygonRSIResponseSchema = z.object({
+  results: PolygonRSIResultsSchema.optional(),
+  status: z.string().optional(),
+  request_id: z.string().optional(),
+  next_url: z.string().url().optional().nullable(),
+  message: z.string().optional(), // Error message
+})
+
+export type TransformedPolygonRSIValue = {
+  timestamp: number
+  date: string // YYYY-MM-DD derived from timestamp
+  rsi: number // RSI value (0-100)
+}
+
+export type TransformedPolygonRSI = {
+  values: TransformedPolygonRSIValue[]
+  // We can add underlying data here if needed later
+}
+
+/**
+ * Fetches RSI (Relative Strength Index) data for a given ticker.
+ * RSI oscillates between 0 and 100 to help identify overbought (>70) or oversold (<30) conditions.
+ */
+export async function fetchRSI(
+  apiKey: string,
+  stockTicker: string,
+  params?: {
+    timestamp?: string // YYYY-MM-DD or millisecond timestamp
+    timespan?: "minute" | "hour" | "day" | "week" | "month" | "quarter" | "year"
+    adjusted?: boolean
+    window?: number // The window size used to calculate RSI (default: 14)
+    series_type?: "open" | "high" | "low" | "close" // Defaults to "close"
+    expand_underlying?: boolean // Defaults to false
+    order?: "asc" | "desc"
+    limit?: number // Max 5000, defaults to 10
+  }
+): Promise<TransformedPolygonRSI | null> {
+  const queryParams = new URLSearchParams({
+    apiKey: apiKey,
+  })
+
+  if (params?.timestamp) queryParams.append("timestamp", params.timestamp)
+  if (params?.timespan) queryParams.append("timespan", params.timespan)
+  if (params?.adjusted !== undefined)
+    queryParams.append("adjusted", String(params.adjusted))
+  if (params?.window) queryParams.append("window", String(params.window))
+  if (params?.series_type) queryParams.append("series_type", params.series_type)
+  if (params?.expand_underlying !== undefined)
+    queryParams.append("expand_underlying", String(params.expand_underlying))
+  if (params?.order) queryParams.append("order", params.order)
+  if (params?.limit) queryParams.append("limit", String(params.limit))
+  else queryParams.append("limit", "50") // Default to a reasonable number like 50 if not specified
+
+  const url = `${POLYGON_API_URL}/v1/indicators/rsi/${stockTicker}?${queryParams.toString()}`
+
+  try {
+    const response = await fetch(url)
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      console.error(
+        `Polygon.io API error for ${stockTicker} (RSI): ${response.status} ${response.statusText}`,
+        errorData
+      )
+      return null
+    }
+
+    const rawData = await response.json()
+    const parsed = PolygonRSIResponseSchema.safeParse(rawData)
+
+    if (!parsed.success) {
+      console.error(
+        `Failed to parse Polygon.io RSI response for ${stockTicker}:`,
+        parsed.error.issues,
+        "Raw data:",
+        rawData
+      )
+      return null
+    }
+
+    const data = parsed.data
+
+    if (data.status === "ERROR" || !data.results || !data.results.values) {
+      console.error(
+        `Polygon.io RSI API returned an error or no values for ${stockTicker}: ${
+          data.message || data.status
+        }`,
+        "Full response:",
+        data
+      )
+      return null
+    }
+
+    if (data.results.values.length === 0) {
+      console.warn(
+        `No RSI data found for ${stockTicker} from Polygon.io. Raw response:`,
+        rawData
+      )
+      return { values: [] }
+    }
+
+    return {
+      values: data.results.values.map((v) => ({
+        timestamp: v.timestamp,
+        date: formatDate(new Date(v.timestamp)), // Convert ms timestamp to YYYY-MM-DD
+        rsi: v.value,
+      })),
+    }
+  } catch (error) {
+    console.error(
+      `Error fetching or parsing Polygon.io RSI for ${stockTicker}:`,
+      error
+    )
+    return null
+  }
+}
+
+// --- Polygon.io EMA API ---
+
+const PolygonEMAValueSchema = z.object({
+  timestamp: z.number(), // The timestamp for the EMA data point
+  value: z.number(), // The EMA value
+})
+
+// Optional: Schema for underlying aggregate data if expand_underlying=true
+const PolygonEMAUnderlyingResultSchema = z.object({
+  o: z.number(),
+  h: z.number(),
+  l: z.number(),
+  c: z.number(),
+  v: z.number(),
+  t: z.number(), // Timestamp
+  n: z.number().optional(),
+})
+
+const PolygonEMAUnderlyingSchema = z.object({
+  url: z.string().url(),
+  results: z.array(PolygonEMAUnderlyingResultSchema).optional(),
+})
+
+const PolygonEMAResultsSchema = z.object({
+  values: z.array(PolygonEMAValueSchema),
+  underlying: PolygonEMAUnderlyingSchema.optional(), // Only if expand_underlying=true
+})
+
+const PolygonEMAResponseSchema = z.object({
+  results: PolygonEMAResultsSchema.optional(),
+  status: z.string().optional(),
+  request_id: z.string().optional(),
+  next_url: z.string().url().optional().nullable(),
+  message: z.string().optional(), // Error message
+})
+
+export type TransformedPolygonEMAValue = {
+  timestamp: number
+  date: string // YYYY-MM-DD derived from timestamp
+  ema: number // EMA value
+}
+
+export type TransformedPolygonEMA = {
+  values: TransformedPolygonEMAValue[]
+  // We can add underlying data here if needed later
+}
+
+/**
+ * Fetches EMA (Exponential Moving Average) data for a given ticker.
+ * EMA places greater weight on recent prices, enabling quicker trend detection.
+ */
+export async function fetchEMA(
+  apiKey: string,
+  stockTicker: string,
+  params?: {
+    timestamp?: string // YYYY-MM-DD or millisecond timestamp
+    timespan?: "minute" | "hour" | "day" | "week" | "month" | "quarter" | "year"
+    adjusted?: boolean
+    window?: number // The window size used to calculate EMA (default varies)
+    series_type?: "open" | "high" | "low" | "close" // Defaults to "close"
+    expand_underlying?: boolean // Defaults to false
+    order?: "asc" | "desc"
+    limit?: number // Max 5000, defaults to 10
+  }
+): Promise<TransformedPolygonEMA | null> {
+  const queryParams = new URLSearchParams({
+    apiKey: apiKey,
+  })
+
+  if (params?.timestamp) queryParams.append("timestamp", params.timestamp)
+  if (params?.timespan) queryParams.append("timespan", params.timespan)
+  if (params?.adjusted !== undefined)
+    queryParams.append("adjusted", String(params.adjusted))
+  if (params?.window) queryParams.append("window", String(params.window))
+  if (params?.series_type) queryParams.append("series_type", params.series_type)
+  if (params?.expand_underlying !== undefined)
+    queryParams.append("expand_underlying", String(params.expand_underlying))
+  if (params?.order) queryParams.append("order", params.order)
+  if (params?.limit) queryParams.append("limit", String(params.limit))
+  else queryParams.append("limit", "50") // Default to a reasonable number like 50 if not specified
+
+  const url = `${POLYGON_API_URL}/v1/indicators/ema/${stockTicker}?${queryParams.toString()}`
+
+  try {
+    const response = await fetch(url)
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      console.error(
+        `Polygon.io API error for ${stockTicker} (EMA): ${response.status} ${response.statusText}`,
+        errorData
+      )
+      return null
+    }
+
+    const rawData = await response.json()
+    const parsed = PolygonEMAResponseSchema.safeParse(rawData)
+
+    if (!parsed.success) {
+      console.error(
+        `Failed to parse Polygon.io EMA response for ${stockTicker}:`,
+        parsed.error.issues,
+        "Raw data:",
+        rawData
+      )
+      return null
+    }
+
+    const data = parsed.data
+
+    if (data.status === "ERROR" || !data.results || !data.results.values) {
+      console.error(
+        `Polygon.io EMA API returned an error or no values for ${stockTicker}: ${
+          data.message || data.status
+        }`,
+        "Full response:",
+        data
+      )
+      return null
+    }
+
+    if (data.results.values.length === 0) {
+      console.warn(
+        `No EMA data found for ${stockTicker} from Polygon.io. Raw response:`,
+        rawData
+      )
+      return { values: [] }
+    }
+
+    return {
+      values: data.results.values.map((v) => ({
+        timestamp: v.timestamp,
+        date: formatDate(new Date(v.timestamp)), // Convert ms timestamp to YYYY-MM-DD
+        ema: v.value,
+      })),
+    }
+  } catch (error) {
+    console.error(
+      `Error fetching or parsing Polygon.io EMA for ${stockTicker}:`,
+      error
+    )
+    return null
+  }
+}
+
+// --- Polygon.io SMA API ---
+
+const PolygonSMAValueSchema = z.object({
+  timestamp: z.number(), // The timestamp for the SMA data point
+  value: z.number(), // The SMA value
+})
+
+// Optional: Schema for underlying aggregate data if expand_underlying=true
+const PolygonSMAUnderlyingResultSchema = z.object({
+  o: z.number(),
+  h: z.number(),
+  l: z.number(),
+  c: z.number(),
+  v: z.number(),
+  t: z.number(), // Timestamp
+  n: z.number().optional(),
+})
+
+const PolygonSMAUnderlyingSchema = z.object({
+  url: z.string().url(),
+  results: z.array(PolygonSMAUnderlyingResultSchema).optional(),
+})
+
+const PolygonSMAResultsSchema = z.object({
+  values: z.array(PolygonSMAValueSchema),
+  underlying: PolygonSMAUnderlyingSchema.optional(), // Only if expand_underlying=true
+})
+
+const PolygonSMAResponseSchema = z.object({
+  results: PolygonSMAResultsSchema.optional(),
+  status: z.string().optional(),
+  request_id: z.string().optional(),
+  next_url: z.string().url().optional().nullable(),
+  message: z.string().optional(), // Error message
+})
+
+export type TransformedPolygonSMAValue = {
+  timestamp: number
+  date: string // YYYY-MM-DD derived from timestamp
+  sma: number // SMA value
+}
+
+export type TransformedPolygonSMA = {
+  values: TransformedPolygonSMAValue[]
+  // We can add underlying data here if needed later
+}
+
+/**
+ * Fetches SMA (Simple Moving Average) data for a given ticker.
+ * SMA calculates the average price across a set number of periods to smooth price fluctuations.
+ */
+export async function fetchSMA(
+  apiKey: string,
+  stockTicker: string,
+  params?: {
+    timestamp?: string // YYYY-MM-DD or millisecond timestamp
+    timespan?: "minute" | "hour" | "day" | "week" | "month" | "quarter" | "year"
+    adjusted?: boolean
+    window?: number // The window size used to calculate SMA (default varies)
+    series_type?: "open" | "high" | "low" | "close" // Defaults to "close"
+    expand_underlying?: boolean // Defaults to false
+    order?: "asc" | "desc"
+    limit?: number // Max 5000, defaults to 10
+  }
+): Promise<TransformedPolygonSMA | null> {
+  const queryParams = new URLSearchParams({
+    apiKey: apiKey,
+  })
+
+  if (params?.timestamp) queryParams.append("timestamp", params.timestamp)
+  if (params?.timespan) queryParams.append("timespan", params.timespan)
+  if (params?.adjusted !== undefined)
+    queryParams.append("adjusted", String(params.adjusted))
+  if (params?.window) queryParams.append("window", String(params.window))
+  if (params?.series_type) queryParams.append("series_type", params.series_type)
+  if (params?.expand_underlying !== undefined)
+    queryParams.append("expand_underlying", String(params.expand_underlying))
+  if (params?.order) queryParams.append("order", params.order)
+  if (params?.limit) queryParams.append("limit", String(params.limit))
+  else queryParams.append("limit", "50") // Default to a reasonable number like 50 if not specified
+
+  const url = `${POLYGON_API_URL}/v1/indicators/sma/${stockTicker}?${queryParams.toString()}`
+
+  try {
+    const response = await fetch(url)
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      console.error(
+        `Polygon.io API error for ${stockTicker} (SMA): ${response.status} ${response.statusText}`,
+        errorData
+      )
+      return null
+    }
+
+    const rawData = await response.json()
+    const parsed = PolygonSMAResponseSchema.safeParse(rawData)
+
+    if (!parsed.success) {
+      console.error(
+        `Failed to parse Polygon.io SMA response for ${stockTicker}:`,
+        parsed.error.issues,
+        "Raw data:",
+        rawData
+      )
+      return null
+    }
+
+    const data = parsed.data
+
+    if (data.status === "ERROR" || !data.results || !data.results.values) {
+      console.error(
+        `Polygon.io SMA API returned an error or no values for ${stockTicker}: ${
+          data.message || data.status
+        }`,
+        "Full response:",
+        data
+      )
+      return null
+    }
+
+    if (data.results.values.length === 0) {
+      console.warn(
+        `No SMA data found for ${stockTicker} from Polygon.io. Raw response:`,
+        rawData
+      )
+      return { values: [] }
+    }
+
+    return {
+      values: data.results.values.map((v) => ({
+        timestamp: v.timestamp,
+        date: formatDate(new Date(v.timestamp)), // Convert ms timestamp to YYYY-MM-DD
+        sma: v.value,
+      })),
+    }
+  } catch (error) {
+    console.error(
+      `Error fetching or parsing Polygon.io SMA for ${stockTicker}:`,
+      error
+    )
+    return null
+  }
+}

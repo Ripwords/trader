@@ -51,6 +51,7 @@
     "zod": "^3.25.45"
   },
   "devDependencies": {
+    "@iconify-json/heroicons": "^1.2.2",
     "@iconify-json/line-md": "^1.2.8",
     "@types/pg": "^8.15.2",
     "@vite-pwa/assets-generator": "^1.0.0"
